@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerMovementNew : MonoBehaviour
+public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement Parameters")]
     [SerializeField] float _walkSpeed = 5.0f;
@@ -73,7 +73,7 @@ public class PlayerMovementNew : MonoBehaviour
     {
         _isSprintPressed = context.ReadValueAsButton();
     }
-
+     
     void OnJump(InputAction.CallbackContext context)
     {
         _isJumpPressed = context.ReadValueAsButton();
@@ -111,10 +111,10 @@ public class PlayerMovementNew : MonoBehaviour
 
         if ((_isMovePressed && _isSprintPressed) && !isRunning)
             _animator.SetBool(_isRunningHash, true);
-        else if ((!_isMovePressed || !_isSprintPressed) && isRunning)
+        else if((!_isMovePressed || !_isSprintPressed) && isRunning)
             _animator.SetBool(_isRunningHash, false);
     }
-
+    
     private void HandleGravity()
     {
         if (!_characterController.isGrounded)
@@ -139,14 +139,14 @@ public class PlayerMovementNew : MonoBehaviour
         float speed = _isSprintPressed ? _sprintSpeed : _walkSpeed;
         float moveDirectionY = _moveDirection.y;
 
-        _moveDirection = (transform.TransformDirection(Vector3.right) * _moveInput.x * speed)
+        _moveDirection = (transform.TransformDirection(Vector3.right) * _moveInput.x * speed) 
                        + (transform.TransformDirection(Vector3.forward) * _moveInput.y * speed);
         _moveDirection.y = moveDirectionY;
     }
 
     private void HandleJump()
     {
-        if (_characterController.isGrounded && _isJumpPressed)
+        if(_characterController.isGrounded && _isJumpPressed)
         {
             _animator.SetBool(_isJumpingHash, true);
             _isJumpAnimating = true;

@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 public class InputManagerNew : MonoBehaviour
 {
     // component references
-    PlayerMovementNew _playerMovement;
+    PlayerMovement _playerMovement;
     MouseLook _mouseLook;
     
     // input references
@@ -21,7 +21,7 @@ public class InputManagerNew : MonoBehaviour
 
     private void Awake()
     {
-        _playerMovement = GetComponent<PlayerMovementNew>();
+        _playerMovement = GetComponent<PlayerMovement>();
         _mouseLook = GetComponent<MouseLook>();
 
         _input = new PlayerInput();
