@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -10,6 +8,10 @@ public class PlayerStateMachine : MonoBehaviour
     [SerializeField] float _walkSpeed = 5.0f;
     [SerializeField] float _sprintSpeed = 8.0f;
     [SerializeField] float _slopeSlideSpeed = 8f;
+    float _currentMoveSpeed;
+    public float WalkSpeed => _walkSpeed;
+    public float SprintSpeed => _sprintSpeed;
+    public float CurrentMoveSpeed { get { return _currentMoveSpeed; } set { _currentMoveSpeed = value; } }
 
     [Header("Jumping Parameters")]
     [SerializeField] float _jumpHeight = 3.0f;
@@ -36,13 +38,19 @@ public class PlayerStateMachine : MonoBehaviour
     bool _isMovePressed;
     bool _isSprintPressed;
     bool _isJumpPressed;
+    public bool IsMovePressed => _isMovePressed;
+    public bool IsSprintPressed => _isSprintPressed;
     public bool IsJumpPressed => _isJumpPressed;
 
     // animator variables
-    int _isWalkingHash;
+    int _isMovingHash;
     int _isRunningHash;
     int _isJumpingHash;
+    int _isFallingHash;
+    public int IsMovingHash => _isMovingHash;
+    public int IsRunningHash => _isRunningHash;
     public int IsJumpingHash => _isJumpingHash;
+    public int IsFallingHash => _isFallingHash;
 
     // state variables
     PlayerBaseState _currentState;
@@ -63,9 +71,10 @@ public class PlayerStateMachine : MonoBehaviour
         _currentState.Enter();
 
         // animator hash references
-        _isWalkingHash = Animator.StringToHash("isMoving");
+        _isMovingHash = Animator.StringToHash("isMoving");
         _isRunningHash = Animator.StringToHash("isRunning");
         _isJumpingHash = Animator.StringToHash("isJumping");
+        _isFallingHash = Animator.StringToHash("isFalling");
 
         // input callbacks
         _groundMovementInput.HorizontalMovement.started += OnMovementInput;
@@ -104,10 +113,21 @@ public class PlayerStateMachine : MonoBehaviour
         _input.Disable();
     }
 
+    // TODO - should _charactercontroller.Move() be called here instead of inside a state?
     private void Update()
     {
-        _currentState.Tick();
-
+        _currentState.TickSubStates();
+        HandleMovementInput();
         _characterController.Move(_moveDirection * Time.deltaTime);
+    }
+
+    // TODO - movement should probably have its own script(s) that other states reference through the StateMachine (context)
+    //        this method for instance could return _moveDirection as a Vector3. But should it be applied in the super-state or sub-state?
+    private void HandleMovementInput()
+    {
+        float moveDirectionY = _moveDirection.y;
+        _moveDirection = (transform.TransformDirection(Vector3.right) * _moveInput.x * _currentMoveSpeed)
+                       + (transform.TransformDirection(Vector3.forward) * _moveInput.y * _currentMoveSpeed);
+        _moveDirection.y = moveDirectionY;
     }
 }
