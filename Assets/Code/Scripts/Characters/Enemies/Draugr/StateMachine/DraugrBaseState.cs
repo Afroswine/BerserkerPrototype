@@ -1,21 +1,21 @@
-public abstract class PlayerBaseState
+public abstract class DraugrBaseState
 {
     private bool _isRootState = false;
-    private PlayerStateMachine _ctx;
-    private PlayerStateLibrary _library;
-    private PlayerBaseState _currentSubState;
-    private PlayerBaseState _currentSuperState;
+    private DraugrStateMachine _ctx;
+    private DraugrStateLibrary _library;
+    private DraugrBaseState _currentSubState;
+    private DraugrBaseState _currentSuperState;
 
     protected bool IsRootState { set { _isRootState = value; } }
-    protected PlayerStateMachine Ctx { get { return _ctx; } }
-    protected PlayerStateLibrary Library { get { return _library; } }
+    protected DraugrStateMachine Ctx { get { return _ctx; } }
+    protected DraugrStateLibrary Library { get { return _library; } }
 
-    public PlayerBaseState(PlayerStateMachine currentContext, PlayerStateLibrary playerStateFactory)
+    public DraugrBaseState(DraugrStateMachine currentContext, DraugrStateLibrary playerStateFactory)
     {
         _ctx = currentContext;
         _library = playerStateFactory;
     }
-    
+
     public abstract void Enter();
     public abstract void Tick();
     public abstract void Exit();
@@ -29,16 +29,16 @@ public abstract class PlayerBaseState
             _currentSubState.TickSubStates();
     }
 
-/*
-    public void ExitSubStates()
-    {
-        Exit();
-        if (_currentSubState != null)
-            _currentSubState.ExitSubStates();
-    }
-*/
+    /*
+        public void ExitSubStates()
+        {
+            Exit();
+            if (_currentSubState != null)
+                _currentSubState.ExitSubStates();
+        }
+    */
 
-    protected void SwitchState(PlayerBaseState newState)
+    protected void SwitchState(DraugrBaseState newState)
     {
         Exit();
         newState.Enter();
@@ -49,12 +49,12 @@ public abstract class PlayerBaseState
             _currentSuperState.SetSubState(newState);
     }
 
-    protected void SetSuperState(PlayerBaseState newSuperState)
+    protected void SetSuperState(DraugrBaseState newSuperState)
     {
         _currentSuperState = newSuperState;
     }
 
-    protected void SetSubState(PlayerBaseState newSubState)
+    protected void SetSubState(DraugrBaseState newSubState)
     {
         _currentSubState = newSubState;
         newSubState.SetSuperState(this);

@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class PlayerGroundedState : PlayerBaseState, IRootState
 {
-    public PlayerGroundedState(PlayerStateMachine currentContext, PlayerStateFactory playerStateFactory)
+    public PlayerGroundedState(PlayerStateMachine currentContext, PlayerStateLibrary playerStateFactory)
         : base(currentContext, playerStateFactory)
     {
         IsRootState = true;
@@ -31,23 +31,25 @@ public class PlayerGroundedState : PlayerBaseState, IRootState
     public override void CheckSwitchStates()
     {
         if (Ctx.IsJumpPressed && !Ctx.RequireNewJumpPress)
-            SwitchState(Factory.Jump());
+            SwitchState(Library.Jump());
         else if (!Ctx.CharacterController.isGrounded)
-            SwitchState(Factory.Fall());
+            SwitchState(Library.Fall());
     }
 
     public override void InitializeSubState()
     {
         if (!Ctx.IsMovePressed && !Ctx.IsSprintPressed)
-            SetSubState(Factory.Idle());
+            SetSubState(Library.Idle());
         else if (Ctx.IsMovePressed && !Ctx.IsSprintPressed)
-            SetSubState(Factory.Walk());
+            SetSubState(Library.Run());
         else if (Ctx.IsMovePressed && Ctx.IsSprintPressed)
-            SetSubState(Factory.Run());
+            SetSubState(Library.Sprint());
     }
 
+    
     public void HandleGravity()
     {
         Ctx.MoveDirectionY = Ctx.GroundedGravity;
     }
+    
 }

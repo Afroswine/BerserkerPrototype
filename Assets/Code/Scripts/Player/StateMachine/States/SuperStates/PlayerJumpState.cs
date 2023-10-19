@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class PlayerJumpState : PlayerBaseState, IRootState
 {
-    public PlayerJumpState(PlayerStateMachine currentContext, PlayerStateFactory playerStateFactory)
+    public PlayerJumpState(PlayerStateMachine currentContext, PlayerStateLibrary playerStateFactory)
         : base(currentContext, playerStateFactory)
     {
         IsRootState = true;
@@ -33,19 +33,20 @@ public class PlayerJumpState : PlayerBaseState, IRootState
     public override void CheckSwitchStates()
     {
         if (Ctx.CharacterController.isGrounded)
-            SwitchState(Factory.Grounded());
+            SwitchState(Library.Grounded());
     }
 
     public override void InitializeSubState()
     {
         if (!Ctx.IsMovePressed && !Ctx.IsSprintPressed)
-            SetSubState(Factory.Idle());
+            SetSubState(Library.Idle());
         else if (Ctx.IsMovePressed && !Ctx.IsSprintPressed)
-            SetSubState(Factory.Walk());
+            SetSubState(Library.Run());
         else if (Ctx.IsMovePressed && Ctx.IsSprintPressed)
-            SetSubState(Factory.Run());
+            SetSubState(Library.Sprint());
     }
 
+    
     void HandleJump()
     {
         Ctx.Animator.SetBool(Ctx.IsJumpingHash, true);
@@ -56,4 +57,5 @@ public class PlayerJumpState : PlayerBaseState, IRootState
     {
         Ctx.MoveDirectionY += Ctx.Gravity * Time.deltaTime;
     }
+    
 }

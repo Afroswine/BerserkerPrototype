@@ -1,23 +1,25 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(CharacterController))]
 public class PlayerStateMachine : MonoBehaviour
 {
     [Header("Player State Machine")]
     [Header("Movement Parameters")]
-    [SerializeField] float _walkSpeed = 5.0f;
+    [SerializeField] float _runSpeed = 5.0f;
     [SerializeField] float _sprintSpeed = 8.0f;
     [SerializeField] float _slopeSlideSpeed = 8f;
+    [SerializeField] float _jumpHeight = 3.0f;
     float _currentMoveSpeed;
-    public float WalkSpeed => _walkSpeed;
+    public float RunSpeed => _runSpeed;
     public float SprintSpeed => _sprintSpeed;
+    public float JumpHeight => _jumpHeight;
     public float CurrentMoveSpeed { get { return _currentMoveSpeed; } set { _currentMoveSpeed = value; } }
 
-    [Header("Jumping Parameters")]
-    [SerializeField] float _jumpHeight = 3.0f;
+    [Header("Gravity")]
     [SerializeField] float _gravity = 30.0f;
     [SerializeField] float _groundedGravity = 0.5f;
-    public float JumpHeight => _jumpHeight;
     public float Gravity { get { return -Mathf.Abs(_gravity); } }
     public float GroundedGravity { get { return -Mathf.Abs(_groundedGravity); } }
 
@@ -43,18 +45,23 @@ public class PlayerStateMachine : MonoBehaviour
     public bool IsJumpPressed => _isJumpPressed;
 
     // animator variables
+    Vector2 _smoothMoveInput = Vector2.zero;    // used for smoothing blended tree animation transitions
     int _isMovingHash;
-    int _isRunningHash;
+    int _isSprintingHash;
     int _isJumpingHash;
     int _isFallingHash;
+    int _smoothMoveXHash;
+    int _smoothMoveYHash;
     public int IsMovingHash => _isMovingHash;
-    public int IsRunningHash => _isRunningHash;
+    public int IsSprintingHash => _isSprintingHash;
     public int IsJumpingHash => _isJumpingHash;
     public int IsFallingHash => _isFallingHash;
+    public int MoveXHash => _smoothMoveXHash;
+    public int MoveYHash => _smoothMoveYHash;
 
     // state variables
     PlayerBaseState _currentState;
-    PlayerStateFactory _states;
+    PlayerStateLibrary _states;
     public PlayerBaseState CurrentState { get { return _currentState; } set { _currentState = value; } }
     
     private void Awake()
@@ -66,15 +73,17 @@ public class PlayerStateMachine : MonoBehaviour
         _animator = GetComponent<Animator>();
 
         // setup state
-        _states = new PlayerStateFactory(this);
+        _states = new PlayerStateLibrary(this);
         _currentState = _states.Grounded();
         _currentState.Enter();
 
         // animator hash references
         _isMovingHash = Animator.StringToHash("isMoving");
-        _isRunningHash = Animator.StringToHash("isRunning");
+        _isSprintingHash = Animator.StringToHash("isSprinting");
         _isJumpingHash = Animator.StringToHash("isJumping");
         _isFallingHash = Animator.StringToHash("isFalling");
+        _smoothMoveXHash = Animator.StringToHash("smoothMoveX");
+        _smoothMoveYHash = Animator.StringToHash("smoothMoveY");
 
         // input callbacks
         _groundMovementInput.HorizontalMovement.started += OnMovementInput;
@@ -90,6 +99,8 @@ public class PlayerStateMachine : MonoBehaviour
     {
         _moveInput = context.ReadValue<Vector2>();
         _isMovePressed = _moveInput.x != 0 || _moveInput.y != 0;
+        //_animator.SetFloat(_moveXHash, _moveInput.x);
+        //_animator.SetFloat(_moveYHash, _moveInput.y);
     }
 
     void OnSprint(InputAction.CallbackContext context)
@@ -117,6 +128,12 @@ public class PlayerStateMachine : MonoBehaviour
     private void Update()
     {
         _currentState.TickSubStates();
+
+        _smoothMoveInput.x = Mathf.MoveTowards(_smoothMoveInput.x, _moveInput.x, 4f * Time.deltaTime);
+        _smoothMoveInput.y = Mathf.MoveTowards(_smoothMoveInput.y, _moveInput.y, 4f * Time.deltaTime);
+        _animator.SetFloat(_smoothMoveXHash, _smoothMoveInput.x);
+        _animator.SetFloat(_smoothMoveYHash, _smoothMoveInput.y);
+
         HandleMovementInput();
         _characterController.Move(_moveDirection * Time.deltaTime);
     }

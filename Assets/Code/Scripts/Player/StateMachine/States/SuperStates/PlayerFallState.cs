@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerFallState : PlayerBaseState, IRootState
 {
-    public PlayerFallState(PlayerStateMachine currentContext, PlayerStateFactory playerStateFactory)
+    public PlayerFallState(PlayerStateMachine currentContext, PlayerStateLibrary playerStateFactory)
         : base(currentContext, playerStateFactory)
     {
         IsRootState = true;
@@ -32,21 +32,22 @@ public class PlayerFallState : PlayerBaseState, IRootState
     public override void CheckSwitchStates()
     {
         if (Ctx.CharacterController.isGrounded)
-            SwitchState(Factory.Grounded());
+            SwitchState(Library.Grounded());
     }
 
     public override void InitializeSubState()
     {
         if (!Ctx.IsMovePressed && !Ctx.IsSprintPressed)
-            SetSubState(Factory.Idle());
+            SetSubState(Library.Idle());
         else if (Ctx.IsMovePressed && !Ctx.IsSprintPressed)
-            SetSubState(Factory.Walk());
+            SetSubState(Library.Run());
         else if (Ctx.IsMovePressed && Ctx.IsSprintPressed)
-            SetSubState(Factory.Run());
+            SetSubState(Library.Sprint());
     }
-
+    
     public void HandleGravity()
     {
         Ctx.MoveDirectionY += Ctx.Gravity * Time.deltaTime;
     }
+    
 }
