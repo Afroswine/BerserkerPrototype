@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -11,7 +9,6 @@ public class SceneLoader : MonoBehaviour
 
     [Header("SceneLoader")]
     [SerializeField] string _resetSceneName = null;
-    [SerializeField] KeyCode _resetKey = KeyCode.R;
 
     private void Awake()
     {
@@ -26,15 +23,6 @@ public class SceneLoader : MonoBehaviour
             Debug.Log("SceneLoader: No Reset Scene name given. Reset scene has been defaulted to the active scene.");
         }
     }
-
-    /*
-    private void Update()
-    {
-        if (Input.GetKeyDown(_resetKey))
-            LoadScene(_resetSceneName);
-
-    }
-    */
 
     public void LoadScene(string sceneName)
     {
