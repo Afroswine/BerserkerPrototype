@@ -1,24 +1,28 @@
 using System.Linq;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteInEditMode]
 public class AISensor : MonoBehaviour
 {
+    public event Action<GameObject> TargetSpotted = delegate { };
+    public event Action<GameObject> TargetLost = delegate { };
+
     [Header("AI Sensor")]
     [SerializeField] bool _drawSensor = true;
     [Header("FOV and Position")]
     [SerializeField] Transform _originOfView;
     [SerializeField] float _distance = 10f;
     [SerializeField, Range(0, 180)] float _angle = 30f;
-    //[SerializeField] float _height = 1f;
     [SerializeField] float _ceiling = 1f;
     [SerializeField] float _floor = -1f;
     [SerializeField] Color _meshColor = Color.cyan;
     Mesh _mesh;
 
     [Header("Scanning")]
-    [SerializeField] int _scansPerSecond = 10;
+    [SerializeField] int _scanFrequency = 10;
     [SerializeField] LayerMask _scanLayers;
     [SerializeField] LayerMask _occlusionLayers;
     Collider[] _colliders = new Collider[50];
@@ -28,14 +32,6 @@ public class AISensor : MonoBehaviour
 
     List<GameObject> _visiblePoints = new List<GameObject>();   // the visible AI Sensor Points
     List<GameObject> _visibleTargets = new List<GameObject>();  // The parent objects stored in the visible AI Sensor Points
-    public List<GameObject> VisiblePoints
-    {
-        get
-        {
-            _visiblePoints.RemoveAll(obj => !obj);
-            return _visiblePoints;
-        }
-    }
     public List<GameObject> VisibleTargets
     {
         get
@@ -47,7 +43,7 @@ public class AISensor : MonoBehaviour
 
     private void Start()
     {
-        _scanInterval = 1.0f / _scansPerSecond;
+        _scanInterval = 1.0f / _scanFrequency;
         _ceiling = Mathf.Abs(_ceiling);
         _floor = -Mathf.Abs(_floor);
     }
@@ -57,28 +53,63 @@ public class AISensor : MonoBehaviour
         _scanTimer -= Time.deltaTime;
         if(_scanTimer <= 0)
         {
-            _scanTimer += _scanInterval;
+            _scanTimer = _scanInterval;
             Scan();
         }
     }
 
     // look for game objects with colliders and an AI Sensor Point script
+    // TODO - this will probably stop working if a second target enters the FOV and then leaves.
     private void Scan()
     {
         _count = Physics.OverlapSphereNonAlloc(_originOfView.position, _distance, _colliders, _scanLayers, QueryTriggerInteraction.Collide);
 
-        _visiblePoints.Clear();
-        _visibleTargets.Clear();
-        for(int i = 0; i < _count; i++)
+        for (int i = 0; i < _count; i++)
         {
             GameObject obj = _colliders[i].gameObject;
-            if (IsInSight(obj) && obj.TryGetComponent<AISensorPoint>(out AISensorPoint point))
+            if (!obj.TryGetComponent<AISensorPoint>(out AISensorPoint point))
+                continue;
+
+            if (IsInSight(obj))
             {
                 _visiblePoints.Add(obj);
-                _visibleTargets.Add(point.ParentObject);
+                if (!_visibleTargets.Contains(point.ParentObject))
+                {
+                    _visibleTargets.Add(point.ParentObject);
+                    TargetSpotted?.Invoke(point.ParentObject);
+                    //Debug.Log("TargetSpotted: " + point.ParentObject.name);
+                }
+            }
+            else
+            {
+                _visiblePoints.Remove(obj);
+                if (_visibleTargets.Contains(point.ParentObject))
+                {
+                    _visibleTargets.Remove(point.ParentObject);
+                    TargetLost?.Invoke(point.ParentObject);
+                    //Debug.Log("TargetLost: " + point.ParentObject.name);
+                }
             }
         }
     }
+
+    /*// will need these variables probably
+    float _rememberTargetDuration;
+    List<GameObject> _targets = new List<GameObject>();
+    public List<GameObject> Targets => _targets; // adds visible targets to itself, only removes them after they are lost for _rememberTargetDuration;
+    IEnumerator LoseTarget(GameObject obj)
+    {
+        float timer = _rememberTargetDuration;
+        
+        while(timer > 0)
+        {
+            timer -= Time.deltaTime;
+            if (IsInSight(obj))
+                break;
+            yield return new WaitForEndOfFrame();
+        }
+        yield return new WaitForSeconds(1f);
+    }*/
 
     public bool IsInSight(GameObject obj)
     {
@@ -87,8 +118,6 @@ public class AISensor : MonoBehaviour
         Vector3 direction = destination - origin;
 
         // if the target is vertically outside of the FOV...
-        //if (direction.y < 0 || direction.y > _height)
-        //if (direction.y < -(_height/2) || direction.y > (_height/2))
         if (direction.y < _floor || direction.y > _ceiling)
             return false;
 
@@ -194,7 +223,7 @@ public class AISensor : MonoBehaviour
         if (_originOfView == null)
             Debug.Log(gameObject.name + "'s 'Origin Of View' has not been set in its AI Sensor script.");
 
-        _scanInterval = 1.0f / _scansPerSecond;
+        _scanInterval = 1.0f / _scanFrequency;
         _ceiling = Mathf.Abs(_ceiling);
         _floor = -Mathf.Abs(_floor);
 
@@ -204,10 +233,10 @@ public class AISensor : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        if (_originOfView == null)
+        if (_drawSensor == false)
             return;
 
-        if (_drawSensor == false)
+        if (_originOfView == null)
             return;
 
         // draws the FOV mesh
@@ -227,9 +256,9 @@ public class AISensor : MonoBehaviour
         }
         */
 
-        // marks over objects that are in bounds AND 'IsInSight()' with green
+        // marks AISensorPoints that are in bounds AND 'IsInSight()' with green
         Gizmos.color = Color.green;
-        foreach (var obj in VisiblePoints)
+        foreach (var obj in _visiblePoints)
         {
             Gizmos.DrawSphere(obj.transform.position, 0.2f);
         }

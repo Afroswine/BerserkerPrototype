@@ -31,18 +31,18 @@ public class DraugrStateMachine : MonoBehaviour
     public Animator Animator => _animator;
 
     // animation variables
-    int _substateIDHash;
-    int _substateChangeHash;
+    int _substateIDHash = AnimatorHash.SubstateID;
+    int _substateChangeHash = AnimatorHash.SubstateChange;
     public int SubstateIDHash => _substateIDHash;
     public int SubstateChangeHash => _substateChangeHash;
 
     Vector2 _smoothMoveInput = Vector2.zero;
-    int _isMovingHash;
-    int _isFallingHash;
-    int _isCombatHash;
-    int _isAttackingHash;
-    int _smoothMoveXHash;
-    int _smoothMoveYHash;
+    int _isMovingHash = AnimatorHash.IsMoving;
+    int _isFallingHash = AnimatorHash.IsFalling;
+    int _isCombatHash = AnimatorHash.IsCombat;
+    int _isAttackingHash = AnimatorHash.IsAttacking;
+    int _smoothMoveXHash = AnimatorHash.SmoothMoveX;
+    int _smoothMoveYHash = AnimatorHash.SmoothMoveY;
     public int IsMovingHash => _isMovingHash;
     public int IsFallingHash => _isFallingHash;
     public int IsCombatHash => _isCombatHash;
@@ -66,16 +66,6 @@ public class DraugrStateMachine : MonoBehaviour
         _states = new DraugrStateLibrary(this);
         _currentState = _states.Grounded();
         _currentState.Enter();
-
-        // animator hash references
-        _substateIDHash = Animator.StringToHash("substateID");
-        _substateChangeHash = Animator.StringToHash("substateChange");
-        _isMovingHash = Animator.StringToHash("isMoving");
-        _isFallingHash = Animator.StringToHash("isFalling");
-        _isCombatHash = Animator.StringToHash("isCombat");
-        _isAttackingHash = Animator.StringToHash("isAttacking");
-        _smoothMoveXHash = Animator.StringToHash("smoothMoveX");
-        _smoothMoveYHash = Animator.StringToHash("smoothMoveY");
     }
 
     private void Update()

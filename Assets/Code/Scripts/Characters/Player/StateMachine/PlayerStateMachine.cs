@@ -47,12 +47,12 @@ public class PlayerStateMachine : MonoBehaviour
 
     // animator variables
     Vector2 _smoothMoveInput = Vector2.zero;    // used for smoothing blended tree animation transitions
-    int _isMovingHash;
-    int _isSprintingHash;
-    int _isJumpingHash;
-    int _isFallingHash;
-    int _smoothMoveXHash;
-    int _smoothMoveYHash;
+    int _isMovingHash = AnimatorHash.IsMoving;
+    int _isSprintingHash = AnimatorHash.IsSprinting;
+    int _isJumpingHash = AnimatorHash.IsJumping;
+    int _isFallingHash = AnimatorHash.IsFalling;
+    int _smoothMoveXHash = AnimatorHash.SmoothMoveX;
+    int _smoothMoveYHash = AnimatorHash.SmoothMoveY;
     public int IsMovingHash => _isMovingHash;
     public int IsSprintingHash => _isSprintingHash;
     public int IsJumpingHash => _isJumpingHash;
@@ -77,14 +77,6 @@ public class PlayerStateMachine : MonoBehaviour
         _states = new PlayerStateLibrary(this);
         _currentState = _states.Grounded();
         _currentState.Enter();
-
-        // animator hash references
-        _isMovingHash = Animator.StringToHash("isMoving");
-        _isSprintingHash = Animator.StringToHash("isSprinting");
-        _isJumpingHash = Animator.StringToHash("isJumping");
-        _isFallingHash = Animator.StringToHash("isFalling");
-        _smoothMoveXHash = Animator.StringToHash("smoothMoveX");
-        _smoothMoveYHash = Animator.StringToHash("smoothMoveY");
 
         // input callbacks
         _groundMovementInput.HorizontalMovement.started += OnMovementInput;

@@ -8,6 +8,7 @@ public class DebugNavMeshAgent : MonoBehaviour
     [SerializeField] bool _velocity;
     [SerializeField] bool _desiredVelocity;
     [SerializeField] bool _path;
+    NavMeshPath _previousPath;
 
     NavMeshAgent _agent;
 
