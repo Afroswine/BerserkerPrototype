@@ -60,6 +60,10 @@ public class AISensor : MonoBehaviour
 
     // look for game objects with colliders and an AI Sensor Point script
     // TODO - this will probably stop working if a second target enters the FOV and then leaves.
+    // TODO - only invokes TargetLost if the target is WITHIN the overlap sphere, but not seen.
+    //  Try converting _colliders to a list, and adding another list called _lastColliders. Make a local list called _distantColliders
+    //  Compare _colliders and _lastColliders by saying _distantColliders = _colliders.Except(_lastColliders).ToList();
+    //  Foreach collider in _distantColliders, remove the visible points and visible target, and invoke TargetLost
     private void Scan()
     {
         _count = Physics.OverlapSphereNonAlloc(_originOfView.position, _distance, _colliders, _scanLayers, QueryTriggerInteraction.Collide);
@@ -67,6 +71,8 @@ public class AISensor : MonoBehaviour
         for (int i = 0; i < _count; i++)
         {
             GameObject obj = _colliders[i].gameObject;
+            obj = _colliders[i].gameObject;
+
             if (!obj.TryGetComponent<AISensorPoint>(out AISensorPoint point))
                 continue;
 
@@ -121,7 +127,7 @@ public class AISensor : MonoBehaviour
         if (direction.y < _floor || direction.y > _ceiling)
             return false;
 
-        // if the target is horizontally outside of the FOV...
+        // if the target is outisde of the FOV angle...
         direction.y = 0;
         float deltaAngle = Vector3.Angle(direction, _originOfView.forward);
         if (deltaAngle > _angle)
@@ -131,7 +137,7 @@ public class AISensor : MonoBehaviour
         if (Physics.Linecast(_originOfView.position, destination, _occlusionLayers))
             return false;
 
-        // otherwise, the target must be in sight!
+        // otherwise, we have Line of Sight!
         return true;
     }
 
